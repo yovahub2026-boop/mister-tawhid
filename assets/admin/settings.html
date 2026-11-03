@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>إعدادات الموقع — لوحة التحكم</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/variables.css" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <style>
+        .form-card {
+            background: #fff;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            padding: 24px;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            padding: 12px;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            border-top: 1px solid var(--color-border);
+            padding-top: 16px;
+            margin-top: 16px;
+        }
+
+        .toast-message {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--color-black);
+            color: var(--color-gold);
+            padding: 12px 24px;
+            border-radius: 4px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 1000;
+            border: 1px solid var(--color-gold);
+            font-weight: 500;
+        }
+
+        .toast-message.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <div id="sidebar-container"></div>
+        <div class="admin-main">
+            <div id="topbar-container"></div>
+            <div class="admin-content">
+                <form id="settings-form" class="form-card">
+                    <h2 style="font-size: 18px; margin-bottom: 24px;">إعدادات المتجر</h2>
+
+                    <div class="form-group">
+                        <label>رقم الهاتف</label>
+                        <input type="text" id="contact-phone" placeholder="مثال: 01012345678" />
+                    </div>
+                    <div class="form-group">
+                        <label>البريد الإلكتروني</label>
+                        <input type="email" id="contact-email" placeholder="info@example.com" />
+                    </div>
+                    <div class="form-group">
+                        <label>رقم الواتساب (للاستفسارات)</label>
+                        <input type="text" id="whatsapp-number" placeholder="مثال: 201012345678" />
+                    </div>
+                    <div class="form-group">
+                        <label>رابط فيسبوك</label>
+                        <input type="url" id="facebook-url" placeholder="https://facebook.com/..." />
+                    </div>
+                    <div class="form-group">
+                        <label>رابط إنستجرام</label>
+                        <input type="url" id="instagram-url" placeholder="https://instagram.com/..." />
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="save-btn">حفظ الإعدادات</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/services/supabase-client.js"></script>
+    <script src="/assets/js/services/auth-service.js"></script>
+    <script src="/assets/admin/js/admin-common.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            await mountAdminLayout("settings", "إعدادات الموقع");
+            await loadSettings();
+            setupFormSubmission();
+        });
+
+        async function loadSettings() {
+            const { data } = await supabaseClient.from('site_settings').select('*').eq('id', 1).single();
+            if (data) {
+                document.getElementById("contact-phone").value = data.contact_phone || "";
+                document.getElementById("contact-email").value = data.contact_email || "";
+                document.getElementById("whatsapp-number").value = data.whatsapp_number || "";
+                document.getElementById("facebook-url").value = data.facebook_url || "";
+                document.getElementById("instagram-url").value = data.instagram_url || "";
+            }
+        }
+
+        function setupFormSubmission() {
+            document.getElementById("settings-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const saveBtn = document.getElementById("save-btn");
+                saveBtn.disabled = true;
+                saveBtn.textContent = "جاري الحفظ...";
+
+                const settingsData = {
+                    contact_phone: document.getElementById("contact-phone").value.trim(),
+                    contact_email: document.getElementById("contact-email").value.trim(),
+                    whatsapp_number: document.getElementById("whatsapp-number").value.trim(),
+                    facebook_url: document.getElementById("facebook-url").value.trim(),
+                    instagram_url: document.getElementById("instagram-url").value.trim(),
+                    updated_at: new Date().toISOString()
+                };
+
+                try {
+                    const { error } = await supabaseClient.from('site_settings').update(settingsData).eq('id', 1);
+                    if (error) throw error;
+                    showToast("تم حفظ الإعدادات بنجاح!");
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = "حفظ الإعدادات";
+                } catch (err) {
+                    console.error(err);
+                    showToast("تعذر حفظ الإعدادات.", true);
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = "حفظ الإعدادات";
+                }
+            });
+        }
+
+        function showToast(message, isError = false) {
+            const oldToast = document.querySelector('.toast-message');
+            if (oldToast) oldToast.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.textContent = message;
+            if (isError) { toast.style.color = '#ff6b6b'; toast.style.borderColor = '#ff6b6b'; }
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+    </script>
+</body>
+
+</html>

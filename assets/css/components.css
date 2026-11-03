@@ -1,0 +1,469 @@
+/* =========================================================
+   ملف المكونات المشتركة (Components)
+   كل عنصر بيتكرر في أكتر من صفحة بيتحط هنا
+   زي الأزرار والهيدر والفوتر وكارت المنتج
+   ========================================================= */
+
+/* --- 1) الأزرار (Buttons) --- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: 12px 24px;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast),
+        color var(--transition-fast),
+        border-color var(--transition-fast);
+    white-space: nowrap;
+    user-select: none;
+}
+
+.btn-primary {
+    background-color: var(--color-gold);
+    color: var(--color-black);
+}
+
+.btn-primary:hover {
+    background-color: var(--color-gold-muted);
+}
+
+.btn-dark {
+    background-color: var(--color-black);
+    color: var(--color-white);
+}
+
+.btn-dark:hover {
+    background-color: var(--color-charcoal);
+    color: var(--color-gold);
+}
+
+.btn-outline {
+    background-color: transparent;
+    color: var(--color-black);
+    border: 1px solid var(--color-black);
+}
+
+.btn-outline:hover {
+    background-color: var(--color-black);
+    color: var(--color-white);
+}
+
+.btn-outline-light {
+    background-color: transparent;
+    color: var(--color-white);
+    border: 1px solid var(--color-white);
+}
+
+.btn-outline-light:hover {
+    background-color: var(--color-white);
+    color: var(--color-black);
+}
+
+/* --- 2) الهيدر (Header) --- */
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--color-black);
+    border-bottom: 1px solid var(--color-charcoal);
+    height: var(--header-height);
+}
+
+.site-header .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+}
+
+/* اللوجو في الهيدر */
+.site-header .brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--color-white);
+}
+
+/* الصورة هنا هنخليها تظهر بحجم مناسب ومش هنستخدم الصورة المربعة */
+.site-header .brand .brand-logo-img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    /* تدوير بسيط عشان تبان زي ختم */
+    object-fit: cover;
+    border: 1px solid var(--color-gold);
+}
+
+.site-header .brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.site-header .brand-text .brand-name {
+    font-size: var(--fs-lg);
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.5px;
+    color: var(--color-white);
+}
+
+.site-header .brand-text .brand-sub {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--color-gold);
+    text-transform: uppercase;
+}
+
+/* القائمة الرئيسية */
+.site-header .nav {
+    display: none;
+    align-items: center;
+    gap: var(--space-6);
+}
+
+.site-header .nav a {
+    color: var(--color-white);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    position: relative;
+    padding-block: var(--space-2);
+}
+
+.site-header .nav a:hover,
+.site-header .nav a.active {
+    color: var(--color-gold);
+}
+
+.site-header .nav a.active::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--color-gold);
+}
+
+/* أزرار الهيدر (السلة والمنيو) */
+.site-header .header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.cart-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: var(--color-white);
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast);
+}
+
+.cart-btn:hover {
+    background-color: var(--color-charcoal);
+    color: var(--color-gold);
+}
+
+.cart-count {
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    min-width: 18px;
+    height: 18px;
+    padding-inline: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: var(--fw-bold);
+    background-color: var(--color-gold);
+    color: var(--color-black);
+    border-radius: 999px;
+}
+
+.cart-count.hidden {
+    display: none;
+}
+
+.menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: var(--color-white);
+}
+
+/* شاشات كبيرة */
+@media (min-width: 900px) {
+    .site-header .nav {
+        display: flex;
+    }
+
+    .menu-toggle {
+        display: none;
+    }
+}
+
+/* منيو الموبايل */
+.mobile-menu {
+    position: fixed;
+    inset: var(--header-height) 0 0 0;
+    background-color: var(--color-black);
+    padding: var(--space-6);
+    z-index: 99;
+    transform: translateX(100%);
+    transition: transform var(--transition-base);
+}
+
+.mobile-menu.is-open {
+    transform: translateX(0);
+}
+
+.mobile-menu nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.mobile-menu nav a {
+    padding: var(--space-4);
+    color: var(--color-white);
+    font-size: var(--fs-lg);
+    border-bottom: 1px solid var(--color-charcoal);
+}
+
+.mobile-menu nav a:hover {
+    color: var(--color-gold);
+}
+
+/* --- 3) الفوتر (Footer) --- */
+.site-footer {
+    background-color: var(--color-black);
+    color: var(--color-white);
+    padding-block: var(--space-7);
+    margin-top: var(--space-8);
+}
+
+.site-footer .footer-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+}
+
+@media (min-width: 768px) {
+    .site-footer .footer-grid {
+        grid-template-columns: 2fr 1fr 1fr;
+    }
+}
+
+.site-footer .footer-brand img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--color-gold);
+    margin-bottom: var(--space-4);
+}
+
+.site-footer .footer-brand p {
+    color: #BBBBBB;
+    font-size: var(--fs-sm);
+    max-width: 320px;
+}
+
+.site-footer h4 {
+    font-size: var(--fs-base);
+    color: var(--color-gold);
+    margin-bottom: var(--space-4);
+}
+
+.site-footer ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.site-footer ul a {
+    color: #DDDDDD;
+    font-size: var(--fs-sm);
+}
+
+.site-footer ul a:hover {
+    color: var(--color-gold);
+}
+
+.site-footer .footer-bottom {
+    margin-top: var(--space-7);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--color-charcoal);
+    text-align: center;
+    font-size: var(--fs-xs);
+    color: #999999;
+}
+
+/* --- 4) كارت المنتج (Product Card) --- */
+.product-card {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: box-shadow var(--transition-base);
+}
+
+.product-card:hover {
+    box-shadow: var(--shadow-soft);
+}
+
+.product-card .product-image {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    background-color: var(--color-surface);
+    overflow: hidden;
+}
+
+.product-card .product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-base);
+}
+
+.product-card:hover .product-image img {
+    transform: scale(1.03);
+}
+
+.product-card .badge {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    padding: 4px 10px;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
+    border-radius: var(--radius-sm);
+}
+
+.badge-unavailable {
+    background-color: #C0392B;
+    color: var(--color-white);
+}
+
+.badge-featured {
+    background-color: var(--color-gold);
+    color: var(--color-black);
+}
+
+.product-card .product-info {
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    flex: 1;
+}
+
+.product-card .product-name {
+    font-size: var(--fs-base);
+    font-weight: var(--fw-medium);
+    color: var(--color-black);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.product-card .product-price {
+    font-size: var(--fs-lg);
+    font-weight: var(--fw-bold);
+    color: var(--color-gold-muted);
+}
+
+.product-card .product-price .currency {
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-regular);
+    color: var(--color-text-muted);
+    margin-inline-start: 4px;
+}
+
+/* --- 5) عنوان القسم (Section Title) --- */
+.section-title {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+}
+
+.section-title h2 {
+    font-size: var(--fs-2xl);
+    font-weight: var(--fw-bold);
+    color: var(--color-black);
+}
+
+.section-title .gold-line {
+    width: 60px;
+    height: 3px;
+    background-color: var(--color-gold);
+}
+
+.section-title p {
+    color: var(--color-text-muted);
+    font-size: var(--fs-sm);
+}
+/* --- رسالة التنبيه (Toast Notification) --- */
+.toast-message {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background-color: var(--color-black);
+    color: var(--color-gold);
+    padding: 12px 24px;
+    border-radius: var(--radius-sm);
+    font-weight: var(--fw-medium);
+    font-size: var(--fs-sm);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    border: 1px solid var(--color-gold);
+}
+
+.toast-message.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+/* --- رسالة التنبيه (Toast Notification) --- */
+.toast-message {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background-color: var(--color-black);
+    color: var(--color-gold);
+    padding: 12px 24px;
+    border-radius: var(--radius-sm);
+    font-weight: var(--fw-medium);
+    font-size: var(--fs-sm);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    border: 1px solid var(--color-gold);
+}
+
+.toast-message.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}

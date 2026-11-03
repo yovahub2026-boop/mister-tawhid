@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>الرئيسية — لوحة التحكم</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="/assets/css/variables.css" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+</head>
+
+<body>
+    <div class="admin-layout">
+        <div id="sidebar-container"></div>
+
+        <div class="admin-main">
+            <div id="topbar-container"></div>
+
+            <div class="admin-content">
+                <!-- كروت الإحصائيات -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-title">إجمالي المنتجات</span>
+                        <span class="stat-value" id="stat-products">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-title">الطلبات الجديدة</span>
+                        <span class="stat-value" id="stat-orders">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-title">قيد المراجعة</span>
+                        <span class="stat-value" id="stat-review">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-title">المكتملة</span>
+                        <span class="stat-value" id="stat-completed">0</span>
+                    </div>
+                </div>
+
+                <!-- جدول آخر الطلبات -->
+                <h2 style="margin-bottom: 16px; font-size: var(--fs-lg);">آخر الطلبات</h2>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>رقم الطلب</th>
+                                <th>اسم العميل</th>
+                                <th>رقم الهاتف</th>
+                                <th>نوع الطلب</th>
+                                <th>التاريخ</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body">
+                            <!-- البيانات هتظهر هنا -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/services/supabase-client.js"></script>
+    <script src="/assets/js/services/auth-service.js"></script>
+    <script src="/assets/admin/js/admin-common.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            // 1) تركيب اللوحة
+            await mountAdminLayout("dashboard", "الرئيسية");
+
+            // 2) جلب عدد المنتجات
+            const { count: productsCount } = await supabaseClient
+                .from('products')
+                .select('*', { count: 'exact', head: true });
+
+            document.getElementById('stat-products').textContent = productsCount || 0;
+
+            // 3) جلب الطلبات
+            const { data: orders, error } = await supabaseClient
+                .from('orders')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            // 4) تحديث كروت الإحصائيات
+            const totalOrders = orders.length;
+            const newOrders = orders.filter(o => o.status === 'new').length;
+            const reviewOrders = orders.filter(o => o.status === 'under_review').length;
+            const completedOrders = orders.filter(o => o.status === 'completed').length;
+
+            document.getElementById('stat-orders').textContent = newOrders;
+            document.getElementById('stat-review').textContent = reviewOrders;
+            document.getElementById('stat-completed').textContent = completedOrders;
+
+            // 5) عرض آخر 5 طلبات في الجدول
+            const tbody = document.getElementById('orders-table-body');
+            const latest = orders.slice(0, 5);
+
+            if (latest.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:32px; color:var(--color-text-muted);">لا توجد طلبات حالياً.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = latest.map(order => {
+                let statusClass = 'status-new';
+                let statusText = 'جديد';
+
+                if (order.status === 'under_review') { statusClass = 'status-review'; statusText = 'قيد المراجعة'; }
+                else if (order.status === 'contacted') { statusClass = 'status-contacted'; statusText = 'تم التواصل'; }
+                else if (order.status === 'confirmed') { statusClass = 'status-confirmed'; statusText = 'مؤكد'; }
+                else if (order.status === 'completed') { statusClass = 'status-completed'; statusText = 'مكتمل'; }
+                else if (order.status === 'cancelled') { statusClass = 'status-cancelled'; statusText = 'ملغي'; }
+
+                const date = new Date(order.created_at).toLocaleDateString('ar-EG');
+                const typeText = order.order_type === 'wholesale' ? 'جملة' : 'قطاعي';
+
+                return `
+          <tr>
+            <td>${order.order_number}</td>
+            <td>${order.customer_name}</td>
+            <td>${order.customer_phone}</td>
+            <td>${typeText}</td>
+            <td>${date}</td>
+            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+          </tr>
+        `;
+            }).join("");
+        });
+    </script>
+</body>
+
+</html>

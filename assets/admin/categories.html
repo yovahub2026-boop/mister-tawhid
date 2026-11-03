@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>الأقسام — لوحة التحكم</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/variables.css" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <style>
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-box {
+            background: #fff;
+            padding: 24px;
+            border-radius: 6px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+
+        .btn-danger {
+            background: #C0392B;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .toast-message {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--color-black);
+            color: var(--color-gold);
+            padding: 12px 24px;
+            border-radius: 4px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 1000;
+            border: 1px solid var(--color-gold);
+            font-weight: 500;
+        }
+
+        .toast-message.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <div id="sidebar-container"></div>
+        <div class="admin-main">
+            <div id="topbar-container"></div>
+            <div class="admin-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2 style="font-size: var(--fs-lg);">إدارة الأقسام</h2>
+                    <a href="/assets/admin/category-form.html" class="btn btn-primary">إضافة قسم جديد</a>
+                </div>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>اسم القسم</th>
+                                <th>الرابط (Slug)</th>
+                                <th>الترتيب</th>
+                                <th>الحالة</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categories-table-body">
+                            <tr>
+                                <td colspan="5" style="text-align:center;">جاري التحميل...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal الحذف -->
+    <div id="delete-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <h3>تأكيد الحذف</h3>
+            <p>هل أنت متأكد من حذف هذا القسم نهائياً؟</p>
+            <div class="modal-actions">
+                <button class="btn btn-outline" onclick="closeDeleteModal()">إلغاء</button>
+                <button class="btn btn-danger" id="confirm-delete-btn">نعم، احذف</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/services/supabase-client.js"></script>
+    <script src="/assets/js/services/auth-service.js"></script>
+    <script src="/assets/admin/js/admin-common.js"></script>
+
+    <script>
+        let categoryToDeleteId = null;
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await mountAdminLayout("categories", "الأقسام");
+            await loadCategories();
+        });
+
+        async function loadCategories() {
+            const { data: categories, error } = await supabaseClient
+                .from('categories')
+                .select('*')
+                .order('display_order', { ascending: true });
+
+            const tbody = document.getElementById("categories-table-body");
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: red;">تعذر تحميل الأقسام.</td></tr>`;
+                return;
+            }
+
+            if (categories.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">لا توجد أقسام.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = categories.map(c => `
+                <tr>
+                    <td>${c.name}</td>
+                    <td>${c.slug}</td>
+                    <td>${c.display_order}</td>
+                    <td><span class="status-badge ${c.is_active ? 'status-confirmed' : 'status-cancelled'}">${c.is_active ? 'نشط' : 'مخفي'}</span></td>
+                    <td>
+                        <a href="/assets/admin/category-form.html?id=${c.id}" class="btn btn-outline" style="padding: 4px 8px; font-size: 12px;">تعديل</a>
+                        <button class="btn btn-outline" style="padding: 4px 8px; font-size: 12px; color: #C0392B; border-color: #C0392B;" onclick="openDeleteModal('${c.id}')">حذف</button>
+                    </td>
+                </tr>
+            `).join("");
+        }
+
+        function openDeleteModal(id) {
+            categoryToDeleteId = id;
+            document.getElementById("delete-modal").style.display = "flex";
+        }
+
+        function closeDeleteModal() {
+            categoryToDeleteId = null;
+            document.getElementById("delete-modal").style.display = "none";
+        }
+
+        document.getElementById("confirm-delete-btn").addEventListener("click", async () => {
+            if (!categoryToDeleteId) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('categories')
+                    .delete()
+                    .eq('id', categoryToDeleteId);
+
+                if (error) throw error;
+
+                closeDeleteModal();
+                await loadCategories();
+                showToast("تم حذف القسم بنجاح!");
+            } catch (err) {
+                console.error(err);
+                showToast("تعذر حذف القسم، قد يكون مرتبطاً بمنتجات.", true);
+            }
+        });
+
+        function showToast(message, isError = false) {
+            const oldToast = document.querySelector('.toast-message');
+            if (oldToast) oldToast.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.textContent = message;
+            if (isError) { toast.style.color = '#ff6b6b'; toast.style.borderColor = '#ff6b6b'; }
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+    </script>
+</body>
+
+</html>

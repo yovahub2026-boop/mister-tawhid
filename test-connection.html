@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>اختبار الاتصال - MISTER TAWHID</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            padding: 50px;
+            background-color: #f4f4f4;
+        }
+
+        .box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            min-width: 400px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .success {
+            color: green;
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box">
+        <h1>جاري اختبار الاتصال بقاعدة البيانات...</h1>
+        <div id="result">يرجى الانتظار...</div>
+    </div>
+
+    <!-- 1. سكريبت Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- 2. ملف الإعدادات (اللي فيه الـ URL والمفتاح) -->
+    <script src="/assets/js/config.js"></script>
+
+    <!-- 3. ملف الاتصال -->
+    <script src="/assets/js/services/supabase-client.js"></script>
+
+    <!-- 4. كود الاختبار -->
+    <script>
+        // بنستنى الصفحة تحمل بالكامل
+        document.addEventListener("DOMContentLoaded", async () => {
+            const resultDiv = document.getElementById("result");
+
+            try {
+                // بنحاول نقرأ من جدول المنتجات
+                const { data, error } = await supabaseClient
+                    .from('products')
+                    .select('*');
+
+                // لو فيه خطأ في الاتصال أو الصلاحيات
+                if (error) {
+                    resultDiv.innerHTML = `<span class="error">فشل الاتصال ❌<br><small>${error.message}</small></span>`;
+                    return;
+                }
+
+                // لو نجح الاتصال (حتى لو مفيش بيانات)
+                resultDiv.innerHTML = `<span class="success">الاتصال بقاعدة البيانات ناجح! ✅</span><br><p>عدد المنتجات الموجودة حالياً: ${data.length}</p>`;
+
+            } catch (err) {
+                resultDiv.innerHTML = `<span class="error">حدث خطأ غير متوقع ❌<br><small>${err.message}</small></span>`;
+            }
+        });
+    </script>
+</body>
+
+</html>

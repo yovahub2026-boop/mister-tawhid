@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MISTER TAWHID — مصنع ملابس</title>
+    <meta name="description" content="مصنع ملابس متخصص في تصنيع وتوريد الملابس بالجملة والقطاعي." />
+
+    <!-- خط IBM Plex Sans Arabic من Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+
+    <!-- ملفات التنسيق — الترتيب مهم -->
+    <link rel="stylesheet" href="/assets/css/variables.css" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/home.css" />
+</head>
+
+<body>
+
+    <!-- الهيدر هيتحط هنا -->
+    <div id="header-container"></div>
+
+    <!-- ===== القسم الرئيسي (Hero) ===== -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <span class="hero-eyebrow">Clothing Factory</span>
+                <h1>ملابس بجودة تصنيع حقيقية، للجملة والقطاعي.</h1>
+                <p>
+                    مصنع متخصص في تصنيع الملابس وتوريدها، بنقدّم منتجات
+                    بخامات مدروسة وتفاصيل نظيفة تناسب الاستخدام اليومي.
+                </p>
+                <div class="hero-buttons">
+                    <a href="/wholesale.html" class="btn btn-primary">تسوق بالجملة</a>
+                    <a href="/retail.html" class="btn btn-outline-light">تسوق بالقطاعي</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== الأقسام ===== -->
+    <section class="categories-section">
+        <div class="container">
+            <div class="section-title">
+                <h2>تسوق حسب القسم</h2>
+                <span class="gold-line"></span>
+            </div>
+            <div class="categories-grid" id="categories-grid">
+                <!-- الأقسام هتتحط هنا -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== المنتجات المميزة ===== -->
+    <section class="products-section alt-bg">
+        <div class="container">
+            <div class="section-title">
+                <h2>منتجات مميزة</h2>
+                <span class="gold-line"></span>
+                <p>اختيارات مختارة بعناية من منتجاتنا.</p>
+            </div>
+            <div class="products-grid" id="featured-products">
+                <!-- المنتجات هتتحط هنا -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== أحدث المنتجات ===== -->
+    <section class="products-section">
+        <div class="container">
+            <div class="section-title">
+                <h2>أحدث المنتجات</h2>
+                <span class="gold-line"></span>
+                <p>آخر ما تم إضافته إلى المتجر.</p>
+            </div>
+            <div class="products-grid" id="latest-products">
+                <!-- المنتجات هتتحط هنا -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== قسم التعريف بالمصنع ===== -->
+    <section class="about-strip">
+        <div class="container">
+            <div>
+                <h2>عن المصنع</h2>
+                <p>
+                    بدأنا كورشة صغيرة، وكبرنا مع الوقت بفضل جودة الخامات
+                    والالتزام بمواعيد التسليم.
+                </p>
+                <p>
+                    بنصنّع قطع بسيطة وتفاصيل مدروسة، ونشتغل مع تجار التجزئة
+                    وأصحاب المحلات بكميات مرنة.
+                </p>
+                <a href="/about.html" class="btn btn-primary" style="margin-top: var(--space-4);">
+                    اقرأ المزيد
+                </a>
+            </div>
+            <div class="about-image">
+                <img src="https://placehold.co/800x600/181818/D4AF37?text=About" alt="عن المصنع" />
+            </div>
+        </div>
+    </section>
+
+    <!-- الفوتر هيتحط هنا -->
+    <div id="footer-container"></div>
+<!-- مكتبة Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- الإعدادات والاتصال -->
+<script src="/assets/js/config.js"></script>
+<script src="/assets/js/services/supabase-client.js"></script>
+
+<!-- مكونات الواجهة -->
+<script src="/assets/js/components/header.js"></script>
+<script src="/assets/js/components/footer.js"></script>
+
+<!-- سكريبت الصفحة الرئيسية -->
+<script src="/assets/js/main.js"></script>
+</body>
+
+</html>

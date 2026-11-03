@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>إضافة/تعديل قسم — لوحة التحكم</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/variables.css" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <style>
+        .form-card {
+            background: #fff;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            padding: 24px;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            padding: 12px;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            border-top: 1px solid var(--color-border);
+            padding-top: 16px;
+            margin-top: 16px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .toast-message {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--color-black);
+            color: var(--color-gold);
+            padding: 12px 24px;
+            border-radius: 4px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 1000;
+            border: 1px solid var(--color-gold);
+            font-weight: 500;
+        }
+
+        .toast-message.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <div id="sidebar-container"></div>
+        <div class="admin-main">
+            <div id="topbar-container"></div>
+            <div class="admin-content">
+                <form id="category-form" class="form-card">
+                    <div class="form-group">
+                        <label for="cat-name">اسم القسم <span style="color:red;">*</span></label>
+                        <input type="text" id="cat-name" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="cat-slug">الرابط (Slug) <span style="color:red;">*</span></label>
+                        <input type="text" id="cat-slug" required placeholder="مثال: women" />
+                        <small style="color:var(--color-text-muted); font-size:12px;">حروف إنجليزية صغيرة، بدون
+                            مسافات.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="cat-desc">وصف القسم (اختياري)</label>
+                        <textarea id="cat-desc"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="cat-order">ترتيب العرض</label>
+                        <input type="number" id="cat-order" value="0" />
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-group">
+                            <input type="checkbox" id="cat-active" checked />
+                            <span>القسم نشط (يظهر في المتجر)</span>
+                        </label>
+                    </div>
+                    <div class="form-actions">
+                        <a href="/assets/admin/categories.html" class="btn btn-outline">إلغاء</a>
+                        <button type="submit" class="btn btn-primary" id="save-btn">حفظ القسم</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/services/supabase-client.js"></script>
+    <script src="/assets/js/services/auth-service.js"></script>
+    <script src="/assets/admin/js/admin-common.js"></script>
+
+    <script>
+        let editingCategoryId = null;
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await mountAdminLayout("categories", "إدارة قسم");
+
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get("id");
+            if (id) {
+                editingCategoryId = id;
+                await loadCategoryForEdit(id);
+            }
+
+            setupFormSubmission();
+        });
+
+        async function loadCategoryForEdit(id) {
+            const { data: c, error } = await supabaseClient.from('categories').select('*').eq('id', id).single();
+            if (error || !c) return;
+
+            document.getElementById("cat-name").value = c.name || "";
+            document.getElementById("cat-slug").value = c.slug || "";
+            document.getElementById("cat-desc").value = c.description || "";
+            document.getElementById("cat-order").value = c.display_order || 0;
+            document.getElementById("cat-active").checked = c.is_active;
+        }
+
+        function setupFormSubmission() {
+            document.getElementById("category-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const saveBtn = document.getElementById("save-btn");
+                saveBtn.disabled = true;
+                saveBtn.textContent = "جاري الحفظ...";
+
+                const categoryData = {
+                    name: document.getElementById("cat-name").value.trim(),
+                    slug: document.getElementById("cat-slug").value.trim().toLowerCase(),
+                    description: document.getElementById("cat-desc").value.trim() || null,
+                    display_order: parseInt(document.getElementById("cat-order").value) || 0,
+                    is_active: document.getElementById("cat-active").checked
+                };
+
+                try {
+                    if (editingCategoryId) {
+                        const { error } = await supabaseClient.from('categories').update(categoryData).eq('id', editingCategoryId);
+                        if (error) throw error;
+                        showToast("تم تعديل القسم بنجاح!");
+                    } else {
+                        const { error } = await supabaseClient.from('categories').insert(categoryData);
+                        if (error) throw error;
+                        showToast("تم إضافة القسم بنجاح!");
+                    }
+
+                    setTimeout(() => window.location.href = "/assets/admin/categories.html", 1500);
+
+                } catch (err) {
+                    console.error(err);
+                    showToast("تعذر حفظ القسم، تأكد أن الـ Slug غير مكرر.", true);
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = "حفظ القسم";
+                }
+            });
+        }
+
+        function showToast(message, isError = false) {
+            const oldToast = document.querySelector('.toast-message');
+            if (oldToast) oldToast.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.textContent = message;
+            if (isError) { toast.style.color = '#ff6b6b'; toast.style.borderColor = '#ff6b6b'; }
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>سلة الطلبات — MISTER TAWHID</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="/assets/css/variables.css" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/cart.css" />
+</head>
+
+<body>
+    <div id="header-container"></div>
+
+    <main class="container">
+        <div class="cart-layout">
+            <!-- قائمة المنتجات -->
+            <div class="cart-items" id="cart-items">
+                <!-- العناصر هتتحط هنا عن طريق الجافاسكريبت -->
+            </div>
+
+            <!-- ملخص الطلب -->
+            <div class="cart-summary" id="cart-summary">
+                <!-- الملخص هيتحط هنا -->
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <!-- نافذة تأكيد الحذف (Modal) -->
+    <div id="delete-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <h3>تأكيد الحذف</h3>
+            <p>هل أنت متأكد من حذف هذا المنتج من السلة؟</p>
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="modal-cancel-btn">إلغاء</button>
+                <button class="btn btn-danger" id="modal-confirm-btn">نعم، احذف</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- السكريبتات (الترتيب مهم جداً) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/services/supabase-client.js"></script>
+    <script src="/assets/js/utils/storage.js"></script>
+    <script src="/assets/js/cart.js"></script>
+    <script src="/assets/js/components/header.js"></script>
+    <script src="/assets/js/components/footer.js"></script>
+    <script src="/assets/js/cart-page.js"></script>
+</body>
+
+</html>

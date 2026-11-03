@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>إتمام الطلب — MISTER TAWHID</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="/assets/css/variables.css" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/checkout.css" />
+</head>
+
+<body>
+    <div id="header-container"></div>
+
+    <main class="container">
+        <div class="checkout-layout">
+
+            <!-- نموذج البيانات -->
+            <div class="checkout-form-section">
+                <h2>بيانات التواصل</h2>
+
+                <form id="checkout-form" novalidate>
+                    <div class="form-row two-cols">
+                        <!-- الاسم -->
+                        <div class="form-group">
+                            <label for="customer-name">الاسم بالكامل <span class="required">*</span></label>
+                            <input type="text" id="customer-name" placeholder="مثال: أحمد محمد" />
+                            <span class="error-message" id="name-error">من فضلك أدخل اسمك.</span>
+                        </div>
+
+                        <!-- رقم الهاتف -->
+                        <div class="form-group">
+                            <label for="customer-phone">رقم الهاتف <span class="required">*</span></label>
+                            <input type="tel" id="customer-phone" placeholder="مثال: 01012345678" />
+                            <span class="error-message" id="phone-error">من فضلك أدخل رقم هاتف صحيح.</span>
+                        </div>
+                    </div>
+
+                    <div class="form-row two-cols">
+                        <!-- المحافظة -->
+                        <div class="form-group">
+                            <label for="customer-governorate">المحافظة <span class="required">*</span></label>
+                            <select id="customer-governorate">
+                                <option value="">اختر المحافظة...</option>
+                                <!-- المحافظات هتتحط هنا عن طريق الجافاسكريبت -->
+                            </select>
+                            <span class="error-message" id="governorate-error">من فضلك اختر المحافظة.</span>
+                        </div>
+
+                        <!-- العنوان (اختياري) -->
+                        <div class="form-group">
+                            <label for="customer-address">العنوان بالتفصيل (اختياري)</label>
+                            <input type="text" id="customer-address" placeholder="الشارع، رقم المبنى..." />
+                        </div>
+                    </div>
+
+                    <!-- ملاحظات (اختياري) -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="customer-notes">ملاحظات إضافية (اختياري)</label>
+                            <textarea id="customer-notes" placeholder="أي تفاصيل إضافية تحب تضيفها..."></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ملخص الطلب -->
+            <div class="checkout-summary">
+                <h2>ملخص الطلب</h2>
+                <div id="checkout-items">
+                    <!-- المنتجات هتتحط هنا عن طريق الجافاسكريبت -->
+                </div>
+
+                <div class="summary-total">
+                    <span>الإجمالي:</span>
+                    <span id="checkout-total">0 ج.م</span>
+                </div>
+
+                <button type="button" class="btn btn-primary submit-order-btn" id="submit-order-btn">
+                    تأكيد الطلب
+                </button>
+
+                <a href="/cart.html" class="back-to-cart">العودة إلى السلة</a>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="footer-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/js/config.js"></script>
+<script src="/assets/js/services/supabase-client.js"></script>
+<script src="/assets/js/utils/storage.js"></script>
+<script src="/assets/js/cart.js"></script>
+<script src="/assets/js/components/header.js"></script>
+<script src="/assets/js/components/footer.js"></script>
+<script src="/assets/js/checkout.js"></script>
+</body>
+
+</html>

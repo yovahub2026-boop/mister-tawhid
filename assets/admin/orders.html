@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>الطلبات — لوحة التحكم</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/variables.css" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+</head>
+
+<body>
+    <div class="admin-layout">
+        <div id="sidebar-container"></div>
+        <div class="admin-main">
+            <div id="topbar-container"></div>
+            <div class="admin-content">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+                    <h2 style="font-size: var(--fs-lg);">إدارة الطلبات</h2>
+                </div>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>رقم الطلب</th>
+                                <th>اسم العميل</th>
+                                <th>رقم الهاتف</th>
+                                <th>نوع الطلب</th>
+                                <th>التاريخ</th>
+                                <th>الإجمالي</th>
+                                <th>الحالة</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body">
+                            <tr>
+                                <td colspan="8" style="text-align:center;">جاري التحميل...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/services/supabase-client.js"></script>
+    <script src="/assets/js/services/auth-service.js"></script>
+    <script src="/assets/admin/js/admin-common.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            // 1) تركيب اللوحة
+            await mountAdminLayout("orders", "الطلبات");
+
+            // 2) جلب الطلبات من الداتابيز
+            const { data: orders, error } = await supabaseClient
+                .from('orders')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            const tbody = document.getElementById("orders-table-body");
+
+            if (error) {
+                console.error(error);
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: red;">تعذر تحميل الطلبات.</td></tr>`;
+                return;
+            }
+
+            if (orders.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">لا توجد طلبات حالياً.</td></tr>`;
+                return;
+            }
+
+            // 3) عرض الطلبات
+            tbody.innerHTML = orders.map(order => {
+                // تحديد شكل الحالة
+                let statusClass = 'status-new';
+                let statusText = 'جديد';
+
+                if (order.status === 'under_review') { statusClass = 'status-review'; statusText = 'قيد المراجعة'; }
+                else if (order.status === 'contacted') { statusClass = 'status-contacted'; statusText = 'تم التواصل'; }
+                else if (order.status === 'confirmed') { statusClass = 'status-confirmed'; statusText = 'مؤكد'; }
+                else if (order.status === 'completed') { statusClass = 'status-completed'; statusText = 'مكتمل'; }
+                else if (order.status === 'cancelled') { statusClass = 'status-cancelled'; statusText = 'ملغي'; }
+
+                const date = new Date(order.created_at).toLocaleDateString('ar-EG');
+                const typeText = order.order_type === 'wholesale' ? 'جملة' : 'قطاعي';
+
+                return `
+                    <tr>
+                        <td>${order.order_number}</td>
+                        <td>${order.customer_name}</td>
+                        <td>${order.customer_phone}</td>
+                        <td>${typeText}</td>
+                        <td>${date}</td>
+                        <td>${order.total_amount} ج.م</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <a href="/assets/admin/order-details.html?id=${order.id}" class="btn btn-outline" style="padding: 4px 8px; font-size: 12px;">عرض</a>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+        });
+    </script>
+</body>
+
+</html>

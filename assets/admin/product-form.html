@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>إضافة/تعديل منتج — لوحة التحكم</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="/assets/css/variables.css" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+
+    <style>
+        .form-card {
+            background-color: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+            max-width: 900px;
+            margin-inline: auto;
+        }
+
+        .form-section-title {
+            font-size: var(--fs-lg);
+            font-weight: var(--fw-bold);
+            color: var(--color-black);
+            margin-bottom: var(--space-4);
+            padding-bottom: var(--space-2);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--space-4);
+            margin-bottom: var(--space-6);
+        }
+
+        @media (min-width: 768px) {
+            .form-grid.two-cols {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+        }
+
+        .form-group label {
+            font-size: var(--fs-sm);
+            font-weight: var(--fw-medium);
+            color: var(--color-black);
+        }
+
+        .form-group label .required {
+            color: #C0392B;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group select,
+        .form-group textarea {
+            padding: 12px 14px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            outline: none;
+            background-color: var(--color-white);
+            font-size: var(--fs-sm);
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--color-gold);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group small {
+            font-size: var(--fs-xs);
+            color: var(--color-text-muted);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: var(--space-3);
+            justify-content: flex-end;
+            padding-top: var(--space-4);
+            border-top: 1px solid var(--color-border);
+        }
+
+        /* منطقة رفع الصور */
+        .image-upload-area {
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+            text-align: center;
+            cursor: pointer;
+            transition: border-color var(--transition-fast), background-color var(--transition-fast);
+        }
+
+        .image-upload-area:hover {
+            border-color: var(--color-gold);
+            background-color: var(--color-surface);
+        }
+
+        .image-upload-area input[type="file"] {
+            display: none;
+        }
+
+        .image-upload-area .upload-icon {
+            color: var(--color-gold-muted);
+            margin-bottom: var(--space-2);
+        }
+
+        .image-upload-area p {
+            font-size: var(--fs-sm);
+            color: var(--color-text-muted);
+        }
+
+        /* شبكة الصور المرفوعة */
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .image-item {
+            position: relative;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            overflow: hidden;
+            aspect-ratio: 3/4;
+            background: #f0f0f0;
+        }
+
+        .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-item .remove-image {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            background: rgba(192, 57, 43, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .image-item .make-primary {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        .image-item.is-primary {
+            border: 2px solid var(--color-gold);
+        }
+
+        .image-item.is-primary::after {
+            content: "الرئيسية";
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: var(--color-gold);
+            color: black;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+
+        .chips-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+        }
+
+        .chip {
+            padding: 6px 12px;
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 999px;
+            font-size: var(--fs-sm);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .chip.selected {
+            background-color: var(--color-black);
+            color: var(--color-gold);
+            border-color: var(--color-black);
+        }
+
+        .input-with-btn {
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-with-btn input {
+            flex: 1;
+        }
+
+        .input-with-btn button {
+            padding: 0 16px;
+            white-space: nowrap;
+        }
+
+        /* رسالة التنبيه (Toast) */
+        .toast-message {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--color-black);
+            color: var(--color-gold);
+            padding: 12px 24px;
+            border-radius: 4px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 1000;
+            border: 1px solid var(--color-gold);
+            font-weight: 500;
+        }
+
+        .toast-message.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <div id="sidebar-container"></div>
+        <div class="admin-main">
+            <div id="topbar-container"></div>
+            <div class="admin-content">
+                <form id="product-form" class="form-card">
+                    <h2 class="form-section-title">البيانات الأساسية</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="product-name">اسم المنتج <span class="required">*</span></label>
+                            <input type="text" id="product-name" required placeholder="مثال: قميص قطني كلاسيك" />
+                        </div>
+                        <div class="form-group">
+                            <label for="product-category">القسم <span class="required">*</span></label>
+                            <select id="product-category" required></select>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="product-description">وصف المنتج</label>
+                            <textarea id="product-description" placeholder="وصف تفصيلي للمنتج..."></textarea>
+                        </div>
+                    </div>
+
+                    <h2 class="form-section-title">الأسعار والخيارات</h2>
+                    <div class="form-grid two-cols">
+                        <div class="form-group">
+                            <label for="product-wholesale-price">سعر الجملة (ج.م) <span
+                                    class="required">*</span></label>
+                            <input type="number" id="product-wholesale-price" min="0" step="0.01" required
+                                placeholder="0.00" />
+                        </div>
+                        <div class="form-group">
+                            <label for="product-retail-price">سعر القطاعي (ج.م) <span class="required">*</span></label>
+                            <input type="number" id="product-retail-price" min="0" step="0.01" required
+                                placeholder="0.00" />
+                        </div>
+                    </div>
+                    <div class="form-grid two-cols">
+                        <div class="form-group">
+                            <label for="product-visibility">أماكن الظهور</label>
+                            <select id="product-visibility">
+                                <option value="both">الجملة والقطاعي</option>
+                                <option value="wholesale">الجملة فقط</option>
+                                <option value="retail">القطاعي فقط</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-min-wholesale">الحد الأدنى لطلب الجملة</label>
+                            <input type="number" id="product-min-wholesale" min="1" placeholder="مثال: 12" />
+                        </div>
+                    </div>
+
+                    <div class="form-grid two-cols">
+                        <div class="form-group">
+                            <label>المقاسات المتاحة</label>
+                            <div class="input-with-btn">
+                                <input type="text" id="size-input" placeholder="اكتب المقاس..." />
+                                <button type="button" class="btn btn-outline" id="add-size-btn">+</button>
+                            </div>
+                            <div class="chips-container" id="sizes-container" style="margin-top: 8px;"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>الألوان المتاحة</label>
+                            <div class="input-with-btn">
+                                <input type="text" id="color-input" placeholder="اكتب اللون..." />
+                                <button type="button" class="btn btn-outline" id="add-color-btn">+</button>
+                            </div>
+                            <div class="chips-container" id="colors-container" style="margin-top: 8px;"></div>
+                        </div>
+                    </div>
+
+                    <h2 class="form-section-title">صور المنتج</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>صور المنتج (يمكنك اختيار أكثر من صورة)</label>
+                            <div class="image-upload-area" id="image-upload-area">
+                                <input type="file" id="product-images" accept="image/jpeg, image/png, image/webp"
+                                    multiple />
+                                <div class="upload-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="17 8 12 3 7 8"></polyline>
+                                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                                    </svg>
+                                </div>
+                                <p>اضغط لاختيار صورة أو أكثر من جهازك</p>
+                            </div>
+                            <div class="images-grid" id="images-grid"></div>
+                            <small style="margin-top: 8px;">الحد الأقصى للصورة: 4 ميجا. الصورة المحددة كـ "الرئيسية" هي
+                                اللي هتظهر في المتجر.</small>
+                        </div>
+                    </div>
+
+                    <h2 class="form-section-title">إعدادات إضافية</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="product-availability">حالة التوفر</label>
+                            <select id="product-availability">
+                                <option value="available">متاح</option>
+                                <option value="unavailable">غير متاح</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="product-featured" style="width: 18px; height: 18px;" />
+                                <span>منتج مميز (يظهر في الصفحة الرئيسية)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="/assets/admin/products.html" class="btn btn-outline">إلغاء</a>
+                        <button type="submit" class="btn btn-primary" id="save-btn">حفظ المنتج</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/services/supabase-client.js"></script>
+    <script src="/assets/js/services/auth-service.js"></script>
+    <script src="/assets/admin/js/admin-common.js"></script>
+
+    <script>
+        let selectedSizes = [];
+        let selectedColors = [];
+        let editingProductId = null;
+        let productImages = []; // هيشيل الصور المرفوعة (كـ ملفات)
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await mountAdminLayout("products", "إدارة منتج");
+            await loadCategories();
+            setupImageUpload();
+            setupAddChips();
+
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get("id");
+            if (id) {
+                editingProductId = id;
+                await loadProductForEdit(id);
+            }
+
+            setupFormSubmission();
+        });
+
+        async function loadCategories() {
+            const select = document.getElementById("product-category");
+            const { data, error } = await supabaseClient.from('categories').select('id, name').eq('is_active', true);
+            if (error) return;
+            data.forEach(cat => {
+                const option = document.createElement("option");
+                option.value = cat.id;
+                option.textContent = cat.name;
+                select.appendChild(option);
+            });
+        }
+
+        async function loadProductForEdit(id) {
+            const { data: p, error } = await supabaseClient.from('products').select('*').eq('id', id).single();
+            if (error || !p) return;
+
+            document.getElementById("product-name").value = p.name || "";
+            document.getElementById("product-category").value = p.category_id || "";
+            document.getElementById("product-description").value = p.description || "";
+            document.getElementById("product-wholesale-price").value = p.wholesale_price || "";
+            document.getElementById("product-retail-price").value = p.retail_price || "";
+            document.getElementById("product-visibility").value = p.visibility || "both";
+            document.getElementById("product-min-wholesale").value = p.minimum_wholesale_quantity || "";
+            document.getElementById("product-availability").value = p.availability_status || "available";
+            document.getElementById("product-featured").checked = p.is_featured || false;
+
+            if (p.sizes && Array.isArray(p.sizes)) { selectedSizes = p.sizes; renderSizes(); }
+            if (p.colors && Array.isArray(p.colors)) { selectedColors = p.colors; renderColors(); }
+
+            // تحميل الصور الموجودة مسبقاً (لو هنضيفها من جدول الصور)
+            const { data: existingImages } = await supabaseClient
+                .from('product_images')
+                .select('*')
+                .eq('product_id', id)
+                .order('display_order', { ascending: true });
+
+            if (existingImages) {
+                productImages = existingImages.map(img => ({
+                    url: img.image_url,
+                    isPrimary: img.is_primary,
+                    isExisting: true,
+                    id: img.id
+                }));
+                renderImagesPreview();
+            }
+        }
+
+        // =========================================================
+        // إدارة المقاسات والألوان
+        // =========================================================
+        function addChip(value, type) {
+            if (!value.trim()) return;
+            if (type === 'size' && !selectedSizes.includes(value)) { selectedSizes.push(value); renderSizes(); }
+            else if (type === 'color' && !selectedColors.includes(value)) { selectedColors.push(value); renderColors(); }
+        }
+        function renderSizes() {
+            document.getElementById("sizes-container").innerHTML = selectedSizes.map((s, i) =>
+                `<span class="chip selected">${s} <span style="cursor:pointer;font-weight:bold;" onclick="removeSize(${i})">×</span></span>`
+            ).join("");
+        }
+        function renderColors() {
+            document.getElementById("colors-container").innerHTML = selectedColors.map((c, i) =>
+                `<span class="chip selected">${c} <span style="cursor:pointer;font-weight:bold;" onclick="removeColor(${i})">×</span></span>`
+            ).join("");
+        }
+        function removeSize(i) { selectedSizes.splice(i, 1); renderSizes(); }
+        function removeColor(i) { selectedColors.splice(i, 1); renderColors(); }
+        function setupAddChips() {
+            document.getElementById("add-size-btn").addEventListener("click", () => { const i = document.getElementById("size-input"); addChip(i.value, 'size'); i.value = ""; });
+            document.getElementById("add-color-btn").addEventListener("click", () => { const i = document.getElementById("color-input"); addChip(i.value, 'color'); i.value = ""; });
+            document.getElementById("size-input").addEventListener("keypress", (e) => { if (e.key === "Enter") { e.preventDefault(); document.getElementById("add-size-btn").click(); } });
+            document.getElementById("color-input").addEventListener("keypress", (e) => { if (e.key === "Enter") { e.preventDefault(); document.getElementById("add-color-btn").click(); } });
+        }
+
+        // =========================================================
+        // إدارة رفع الصور المتعددة
+        // =========================================================
+        function setupImageUpload() {
+            const input = document.getElementById("product-images");
+            const uploadArea = document.getElementById("image-upload-area");
+
+            uploadArea.addEventListener("click", () => input.click());
+
+            input.addEventListener("change", (e) => {
+                const files = Array.from(e.target.files);
+
+                // بنضيف الصور الجديدة للمصفوفة
+                files.forEach(file => {
+                    // لو مفيش صورة رئيسية، خلي أول صورة هي الرئيسية
+                    const isPrimary = productImages.length === 0;
+                    productImages.push({ file: file, isPrimary: isPrimary, isExisting: false });
+                });
+
+                renderImagesPreview();
+                input.value = ""; // بنفضي الحقل عشان نقدر نختار تاني
+            });
+        }
+
+        function renderImagesPreview() {
+            const container = document.getElementById("images-grid");
+
+            if (productImages.length === 0) {
+                container.innerHTML = "";
+                return;
+            }
+
+            container.innerHTML = productImages.map((img, index) => {
+                // لو الصورة موجودة مسبقاً (ليها رابط)، نعرض الرابط، غير كده نعرض الملف
+                const src = img.isExisting ? img.url : URL.createObjectURL(img.file);
+                return `
+                    <div class="image-item ${img.isPrimary ? 'is-primary' : ''}">
+                        <img src="${src}" alt="صورة المنتج" />
+                        <button type="button" class="remove-image" onclick="removeImage(${index})">×</button>
+                        ${!img.isPrimary ? `<button type="button" class="make-primary" onclick="setPrimaryImage(${index})">اجعلها رئيسية</button>` : ''}
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function removeImage(index) {
+            const wasPrimary = productImages[index].isPrimary;
+            productImages.splice(index, 1);
+
+            // لو شيلنا الصورة الرئيسية، نخلي أول صورة هي الرئيسية
+            if (wasPrimary && productImages.length > 0) {
+                productImages[0].isPrimary = true;
+            }
+
+            renderImagesPreview();
+        }
+
+        function setPrimaryImage(index) {
+            productImages.forEach((img, i) => img.isPrimary = (i === index));
+            renderImagesPreview();
+        }
+
+        // =========================================================
+        // حفظ المنتج (مع رفع الصور)
+        // =========================================================
+        function setupFormSubmission() {
+            document.getElementById("product-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const saveBtn = document.getElementById("save-btn");
+                saveBtn.disabled = true;
+                saveBtn.textContent = "جاري الحفظ...";
+
+                try {
+                    // 1) بنجمع البيانات الأساسية
+                    const productData = {
+                        name: document.getElementById("product-name").value.trim(),
+                        category_id: document.getElementById("product-category").value,
+                        description: document.getElementById("product-description").value.trim() || null,
+                        wholesale_price: parseFloat(document.getElementById("product-wholesale-price").value),
+                        retail_price: parseFloat(document.getElementById("product-retail-price").value),
+                        visibility: document.getElementById("product-visibility").value,
+                        minimum_wholesale_quantity: document.getElementById("product-min-wholesale").value ? parseInt(document.getElementById("product-min-wholesale").value) : null,
+                        availability_status: document.getElementById("product-availability").value,
+                        is_featured: document.getElementById("product-featured").checked,
+                        sizes: selectedSizes,
+                        colors: selectedColors,
+                        is_published: true
+                    };
+
+                    // 2) بنحدد الصورة الرئيسية (لو موجودة)
+                    const primaryImage = productImages.find(img => img.isPrimary);
+                    if (primaryImage && !primaryImage.isExisting) {
+                        // بنرفع الصورة الرئيسية الأول عشان ناخد رابطها
+                        const fileExt = primaryImage.file.name.split('.').pop();
+                        const fileName = `${Date.now()}_primary.${fileExt}`;
+                        const { error: uploadError } = await supabaseClient.storage
+                            .from('product-images')
+                            .upload(fileName, primaryImage.file);
+
+                        if (uploadError) throw uploadError;
+                        const { data: { publicUrl } } = supabaseClient.storage.from('product-images').getPublicUrl(fileName);
+                        productData.image_url = publicUrl;
+                    } else if (primaryImage && primaryImage.isExisting) {
+                        // لو الصورة الرئيسية موجودة مسبقاً
+                        productData.image_url = primaryImage.url;
+                    } else {
+                        // لو مفيش صورة خالص
+                        productData.image_url = "https://placehold.co/600x800/F7F7F5/0D0D0D?text=" + encodeURIComponent(productData.name);
+                    }
+
+                    // 3) حفظ أو تعديل المنتج الأساسي
+                    let savedProduct;
+                    if (editingProductId) {
+                        const { data, error } = await supabaseClient.from('products').update(productData).eq('id', editingProductId).select().single();
+                        if (error) throw error;
+                        savedProduct = data;
+                    } else {
+                        const { data, error } = await supabaseClient.from('products').insert(productData).select().single();
+                        if (error) throw error;
+                        savedProduct = data;
+                    }
+
+                    // 4) رفع باقي الصور وحفظها في جدول product_images
+                    // (بنرفع بس الصور الجديدة اللي لسه مرفوعتش)
+                    for (let i = 0; i < productImages.length; i++) {
+                        const img = productImages[i];
+                        if (img.isExisting) continue; // لو موجودة مسبقاً، مش هنرفعها تاني
+
+                        // بنرفع الصورة
+                        const fileExt = img.file.name.split('.').pop();
+                        const fileName = `${Date.now()}_${i}.${fileExt}`;
+                        const { error: uploadError } = await supabaseClient.storage
+                            .from('product-images')
+                            .upload(fileName, img.file);
+
+                        if (uploadError) {
+                            console.error("خطأ في رفع صورة:", uploadError);
+                            continue; // بنكمل باقي الصور حتى لو واحدة فشلت
+                        }
+
+                        const { data: { publicUrl } } = supabaseClient.storage.from('product-images').getPublicUrl(fileName);
+
+                        // بنحفظها في جدول product_images
+                        await supabaseClient.from('product_images').insert({
+                            product_id: savedProduct.id,
+                            image_url: publicUrl,
+                            is_primary: img.isPrimary,
+                            display_order: i
+                        });
+                    }
+
+                    showToast(editingProductId ? "تم تعديل المنتج بنجاح!" : "تم إضافة المنتج بنجاح!");
+                    setTimeout(() => window.location.href = "/assets/admin/products.html", 1500);
+
+                } catch (err) {
+                    console.error(err);
+                    showToast("تعذر حفظ المنتج، يرجى المحاولة.", true);
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = "حفظ المنتج";
+                }
+            });
+        }
+
+        function showToast(message, isError = false) {
+            const oldToast = document.querySelector('.toast-message');
+            if (oldToast) oldToast.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.textContent = message;
+            if (isError) { toast.style.color = '#ff6b6b'; toast.style.borderColor = '#ff6b6b'; }
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+    </script>
+</body>
+
+</html>

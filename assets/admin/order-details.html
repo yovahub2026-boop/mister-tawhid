@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>تفاصيل الطلب — لوحة التحكم</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/variables.css" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+
+    <style>
+        .order-box {
+            background: #fff;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .order-box h3 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 8px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-item label {
+            font-size: 12px;
+            color: var(--color-text-muted);
+        }
+
+        .info-item span {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        .items-table th,
+        .items-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--color-border);
+            text-align: right;
+            font-size: 14px;
+        }
+
+        .items-table th {
+            background: #f8f9fa;
+        }
+
+        .status-select {
+            padding: 8px;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .actions-bar {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-whatsapp:hover {
+            background: #128C7E;
+        }
+
+        /* رسالة التنبيه (Toast) */
+        .toast-message {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--color-black);
+            color: var(--color-gold);
+            padding: 12px 24px;
+            border-radius: 4px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 1000;
+            border: 1px solid var(--color-gold);
+            font-weight: 500;
+        }
+
+        .toast-message.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <div id="sidebar-container"></div>
+        <div class="admin-main">
+            <div id="topbar-container"></div>
+            <div class="admin-content" id="order-content">
+                <p style="text-align:center;">جاري تحميل الطلب...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/services/supabase-client.js"></script>
+    <script src="/assets/js/services/auth-service.js"></script>
+    <script src="/assets/admin/js/admin-common.js"></script>
+
+    <script>
+        let currentOrder = null;
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await mountAdminLayout("orders", "تفاصيل الطلب");
+
+            const params = new URLSearchParams(window.location.search);
+            const orderId = params.get("id");
+
+            if (!orderId) {
+                document.getElementById("order-content").innerHTML = "<p style='text-align:center; color:red;'>لم يتم تحديد الطلب.</p>";
+                return;
+            }
+
+            await loadOrderDetails(orderId);
+        });
+
+        async function loadOrderDetails(orderId) {
+            const container = document.getElementById("order-content");
+
+            // 1) بنجيب الطلب
+            const { data: order, error } = await supabaseClient
+                .from('orders')
+                .select('*')
+                .eq('id', orderId)
+                .single();
+
+            if (error || !order) {
+                container.innerHTML = "<p style='text-align:center; color:red;'>الطلب غير موجود.</p>";
+                return;
+            }
+
+            currentOrder = order;
+
+            // 2) بنجيب تفاصيل المنتجات
+            const { data: items } = await supabaseClient
+                .from('order_items')
+                .select('*')
+                .eq('order_id', orderId);
+
+            // 3) بنجهز خيارات الحالة
+            const statusOptions = {
+                'new': 'جديد',
+                'under_review': 'قيد المراجعة',
+                'contacted': 'تم التواصل',
+                'confirmed': 'مؤكد',
+                'completed': 'مكتمل',
+                'cancelled': 'ملغي'
+            };
+
+            const statusSelect = Object.entries(statusOptions).map(([value, label]) =>
+                `<option value="${value}" ${order.status === value ? 'selected' : ''}>${label}</option>`
+            ).join("");
+
+            // 4) بنجهز رقم الواتساب
+            const phone = order.customer_phone.startsWith('0') ? '2' + order.customer_phone : order.customer_phone;
+            const whatsappMsg = encodeURIComponent(`مرحباً ${order.customer_name}، بخصوص طلبك رقم ${order.order_number}...`);
+            const whatsappUrl = `https://wa.me/${phone}?text=${whatsappMsg}`;
+
+            // 5) بنرسم الصفحة
+            container.innerHTML = `
+                <div class="order-box">
+                    <h3>بيانات العميل</h3>
+                    <div class="info-grid">
+                        <div class="info-item"><label>الاسم</label><span>${order.customer_name}</span></div>
+                        <div class="info-item"><label>الهاتف</label><span>${order.customer_phone}</span></div>
+                        <div class="info-item"><label>المحافظة</label><span>${order.governorate}</span></div>
+                        <div class="info-item"><label>العنوان</label><span>${order.address || 'غير محدد'}</span></div>
+                        <div class="info-item"><label>ملاحظات</label><span>${order.notes || 'لا توجد'}</span></div>
+                    </div>
+                </div>
+
+                <div class="order-box">
+                    <h3>المنتجات</h3>
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>المنتج</th>
+                                <th>المقاس</th>
+                                <th>اللون</th>
+                                <th>الكمية</th>
+                                <th>السعر</th>
+                                <th>الإجمالي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${(items || []).map(item => `
+                                <tr>
+                                    <td>${item.product_name_snapshot}</td>
+                                    <td>${item.selected_size}</td>
+                                    <td>${item.selected_color}</td>
+                                    <td>${item.quantity}</td>
+                                    <td>${item.unit_price_snapshot} ج.م</td>
+                                    <td>${item.subtotal} ج.م</td>
+                                </tr>
+                            `).join("")}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="order-box">
+                    <h3>بيانات الطلب</h3>
+                    <div class="info-grid">
+                        <div class="info-item"><label>رقم الطلب</label><span>${order.order_number}</span></div>
+                        <div class="info-item"><label>النوع</label><span>${order.order_type === 'wholesale' ? 'جملة' : 'قطاعي'}</span></div>
+                        <div class="info-item"><label>الإجمالي</label><span style="color:var(--color-gold-muted); font-weight:bold;">${order.total_amount} ج.م</span></div>
+                        <div class="info-item">
+                            <label>الحالة</label>
+                            <select class="status-select" id="order-status-select">${statusSelect}</select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions-bar">
+                    <a href="${whatsappUrl}" target="_blank" class="btn-whatsapp">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592z"/></svg>
+                        تواصل واتساب
+                    </a>
+                    <button class="btn btn-primary" id="save-status-btn">حفظ حالة الطلب</button>
+                </div>
+            `;
+
+            // 6) تفعيل زرار حفظ الحالة
+            document.getElementById("save-status-btn").addEventListener("click", async () => {
+                const newStatus = document.getElementById("order-status-select").value;
+                const btn = document.getElementById("save-status-btn");
+
+                btn.textContent = "جاري الحفظ...";
+                btn.disabled = true;
+
+                try {
+                    const { error } = await supabaseClient
+                        .from('orders')
+                        .update({ status: newStatus })
+                        .eq('id', orderId);
+
+                    if (error) throw error;
+
+                    showToast("تم حفظ حالة الطلب بنجاح!");
+                    btn.textContent = "حفظ حالة الطلب";
+                    btn.disabled = false;
+
+                } catch (err) {
+                    console.error(err);
+                    showToast("تعذر حفظ الحالة، يرجى المحاولة مرة أخرى.", true);
+                    btn.textContent = "حفظ حالة الطلب";
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        // دالة رسالة التنبيه (Toast)
+        function showToast(message, isError = false) {
+            const oldToast = document.querySelector('.toast-message');
+            if (oldToast) oldToast.remove();
+
+            const toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.textContent = message;
+
+            if (isError) {
+                toast.style.color = '#ff6b6b';
+                toast.style.borderColor = '#ff6b6b';
+            }
+
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+
+</html>

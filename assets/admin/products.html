@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>المنتجات — لوحة التحكم</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/variables.css" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <style>
+        /* تنسيقات Modal الحذف */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-box {
+            background: #fff;
+            padding: 24px;
+            border-radius: 6px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+
+        .btn-danger {
+            background: #C0392B;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <div id="sidebar-container"></div>
+        <div class="admin-main">
+            <div id="topbar-container"></div>
+            <div class="admin-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2 style="font-size: var(--fs-lg);">إدارة المنتجات</h2>
+                    <a href="/assets/admin/product-form.html" class="btn btn-primary">إضافة منتج جديد</a>
+                </div>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>المنتج</th>
+                                <th>سعر الجملة</th>
+                                <th>سعر القطاعي</th>
+                                <th>الحالة</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-table-body">
+                            <tr>
+                                <td colspan="5" style="text-align:center;">جاري التحميل...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal الحذف -->
+    <div id="delete-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <h3>تأكيد الحذف</h3>
+            <p>هل أنت متأكد من حذف هذا المنتج نهائياً؟</p>
+            <div class="modal-actions">
+                <button class="btn btn-outline" onclick="closeDeleteModal()">إلغاء</button>
+                <button class="btn btn-danger" id="confirm-delete-btn">نعم، احذف</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/services/supabase-client.js"></script>
+    <script src="/assets/js/services/auth-service.js"></script>
+    <script src="/assets/admin/js/admin-common.js"></script>
+
+    <script>
+        let productToDeleteId = null;
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await mountAdminLayout("products", "المنتجات");
+            await loadProducts();
+        });
+
+        async function loadProducts() {
+            const { data: products, error } = await supabaseClient
+                .from('products')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            const tbody = document.getElementById("products-table-body");
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: red;">تعذر تحميل المنتجات.</td></tr>`;
+                return;
+            }
+
+            if (products.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">لا توجد منتجات.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = products.map(p => `
+                <tr>
+                    <td>${p.name}</td>
+                    <td>${p.wholesale_price} ج.م</td>
+                    <td>${p.retail_price} ج.م</td>
+                    <td>
+                        <span class="status-badge ${p.availability_status === 'available' ? 'status-confirmed' : 'status-cancelled'}">
+                            ${p.availability_status === 'available' ? 'متاح' : 'غير متاح'}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="/assets/admin/product-form.html?id=${p.id}" class="btn btn-outline" style="padding: 4px 8px; font-size: 12px;">تعديل</a>
+                        <button class="btn btn-outline" style="padding: 4px 8px; font-size: 12px; color: #C0392B; border-color: #C0392B;" onclick="openDeleteModal('${p.id}')">حذف</button>
+                    </td>
+                </tr>
+            `).join("");
+        }
+
+        function openDeleteModal(id) {
+            productToDeleteId = id;
+            document.getElementById("delete-modal").style.display = "flex";
+        }
+
+        function closeDeleteModal() {
+            productToDeleteId = null;
+            document.getElementById("delete-modal").style.display = "none";
+        }
+
+        document.getElementById("confirm-delete-btn").addEventListener("click", async () => {
+            if (!productToDeleteId) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('products')
+                    .delete()
+                    .eq('id', productToDeleteId);
+
+                if (error) throw error;
+
+                closeDeleteModal();
+                await loadProducts(); // إعادة تحميل الجدول
+            } catch (err) {
+                console.error(err);
+                alert("تعذر حذف المنتج.");
+            }
+        });
+    </script>
+</body>
+
+</html>
